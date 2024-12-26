@@ -1,0 +1,95 @@
+﻿@page "/Countries/Edit/{Id:int}"
+
+@using System.Text.Json.Nodes
+@using ComfortAndRestBlazor.Models
+
+<div class="row">
+    <div class="col-lg-8">
+        <h1 class="mb-5">Edit Country</h1>
+
+
+        @if(country == null)
+        {
+            <p><em>Loading...</em></p>
+        }
+        else
+        {
+            <div class="row mb-3">
+                <label class="col-md-4 col-form-label">Country Id</label>
+                <div class="col-md-8">
+                    <input class="form-control-plaintext" value="@Id" readonly>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-md-4 col-form-label">Name</label>
+                <div class="col-md-8">
+                    <input class="form-control" @bind="CountryData.Name">
+                    <span class="text-danger">@Errors["Name"]?[0]</span>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-md-4 col-form-label">Description</label>
+                <div class="col-md-8">     
+                    <input class="form-control" @bind="CountryData.Description">
+                    <span class="text-danger">@Errors["Description"]?[0]</span> 
+                </div>
+            </div>
+            <div class="row">
+                <div class="offset-mb-4 col-md-4 d-grib">
+                     <button class="btn btn-primary" @onclick="SaveCountry">Sumbit</button>
+                </div>
+                <div class="col-md-4 d-grid">
+                    <a class="btn btn-outline-primary" href="/Countries">Cancel</a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@inject HttpClient Http
+@inject NavigationManager navManager
+
+
+@code {
+    [Parameter]
+    public int Id { set; get; }
+    public Models.Country? country = null;
+    public CountryDto CountryData { set; get; } = new();
+    public JsonNode Errors { set; get; } = new JsonObject();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        try
+        {
+            country = await Http.GetFromJsonAsync<Models.Country>("https://localhost:4000/api/Countries/" + Id);
+            CountryData.Name = country?.Name ?? "";
+            CountryData.Description = country?.Description ?? "";
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine("Exception : " + ex.Message);
+        }
+    }
+    protected async Task SaveCountry()
+    {
+        var responce = await Http.PutAsJsonAsync("https://localhost:4000/api/Countries/" + Id, CountryData);
+
+        if (responce.IsSuccessStatusCode)
+        {
+            navManager.NavigateTo("/Countries");
+        }
+        else
+        {
+            var strResponse = await responce.Content.ReadAsStringAsync();
+            try
+            {
+                var jsonResponce = JsonNode.Parse(strResponse);
+                Errors = jsonResponce?["errors"] ?? new JsonObject();
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }
+    }
+}

@@ -1,0 +1,66 @@
+﻿@page "/Countries/Create"
+@inject HttpClient Http
+
+
+<div class="row">
+    <div class="col-lg-8">
+        <h1 class="mb-5">New Country</h1>
+
+        <div class="row mb-3">
+            <label class="col-md-4 col-form-label">Name</label>
+            <div class="col-md-8">
+                <input class="form-control" @bind="CountryData.Name">
+                <span class="text-danger">@Errors["Name"]?[0]</span>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label class="col-md-4 col-form-label">Description</label>
+            <div class="col-md-8">     
+                <input class="form-control" @bind="CountryData.Description">
+                <span class="text-danger">@Errors["Description"]?[0]</span> 
+            </div>
+        </div>
+        <div class="row">
+            <div class="offset-mb-4 col-md-4 d-grib">
+                <button class="btn btn-primary" @onclick="SaveCountry">Sumbit</button>
+            </div>
+            <div class="col-md-4 d-grid">
+                <a class="btn btn-outline-primary" href="/Countries">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@inject NavigationManager navManager
+
+@using System.Text.Json.Nodes
+
+@code {
+    public Models.CountryDto CountryData { set; get; } = new();
+    public JsonNode Errors { set; get; } = new JsonObject();
+
+    protected async Task SaveCountry()
+    {
+        var responce = await Http.PostAsJsonAsync("https://localhost:4000/api/Countries", CountryData);
+
+        if (responce.IsSuccessStatusCode)
+        {
+            navManager.NavigateTo("/Countries");
+        }
+        else
+        {
+            var strResponse = await responce.Content.ReadAsStringAsync();
+            Console.WriteLine("Json Response:\n" + strResponse);
+
+            try
+            {
+                var jsonResponce = JsonNode.Parse(strResponse);
+                Errors = jsonResponce?["errors"] ?? new JsonObject();
+            }
+            catch (Exception ex)
+            {
+                
+            }
+        }
+    }
+}

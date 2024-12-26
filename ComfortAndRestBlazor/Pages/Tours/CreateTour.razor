@@ -1,0 +1,117 @@
+﻿@page "/Tours/Create"
+@inject HttpClient Http
+
+
+
+
+<div class="row">
+    <div class="col-lg-8">
+        <h1 class="mb-5">New Tour</h1>
+
+        <div class="row mb-3">
+            <label class="col-md-4 col-form-label">Name</label>
+            <div class="col-md-8">
+                <input class="form-control" @bind="TourData.Name">
+                <span class="text-danger">@Errors["Name"]?[0]</span>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label class="col-md-4 col-form-label">Description</label>
+            <div class="col-md-8">
+                <input class="form-control" @bind="TourData.Description">
+                <span class="text-danger">@Errors["Description"]?[0]</span>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label class="col-md-4 col-form-label">Price</label>
+            <div class="col-md-8">
+                <input class="form-control" @bind="TourData.Price">
+                <span class="text-danger">@Errors["Price"]?[0]</span>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label class="col-md-4 col-form-label">Start Date</label>
+            <div class="col-md-8">
+                <input type="date" class="form-control" @bind="TourData.StartDate" />
+
+                <span class="text-danger">@Errors["StartDate"]?[0]</span>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label class="col-md-4 col-form-label">End Date</label>
+            <div class="col-md-8">
+                <input type="date" class="form-control" @bind="TourData.EndDate" />
+
+                <span class="text-danger">@Errors["EndDate"]?[0]</span>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label class="col-md-4 col-form-label">Country ID</label>
+            <div class="col-md-8">
+                <input class="form-control" @bind="TourData.CountryId">
+                <span class="text-danger">@Errors["CountryId"]?[0]</span>
+            </div>
+        </div>
+        <div class="row">
+            <div class="offset-mb-4 col-md-4 d-grib">
+                <button class="btn btn-primary" @onclick="SaveTour">Sumbit</button>
+
+            </div>
+            <div class="col-md-4 d-grid">
+                <a class="btn btn-outline-primary" href="/Tours">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@inject NavigationManager navManager
+@using System.Text.Json.Nodes
+
+@code {
+    public Models.TourDto TourData { set; get; } = new();
+    public JsonNode Errors { set; get; } = new JsonObject();
+
+    protected async Task SaveTour()
+    {
+        var responce = await Http.PostAsJsonAsync("https://localhost:4000/api/Tours", TourData);
+
+        if (responce.IsSuccessStatusCode)
+        {
+            navManager.NavigateTo("/Tours");
+        }
+        else
+        {
+            var strResponse = await responce.Content.ReadAsStringAsync();
+            Console.WriteLine("Json Response:\n" + strResponse);
+
+            try
+            {
+                var jsonResponce = JsonNode.Parse(strResponse);
+                Errors = jsonResponce?["errors"] ?? new JsonObject();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error parsing JSON response: {ex.Message}");
+                Errors = new JsonObject();
+            }
+        }
+    }
+
+
+
+ 
+
+}
+
+@if (Errors != null && Errors.AsObject().Any())
+{
+    <div class="alert alert-danger">
+        <ul>
+            @foreach (var error in Errors.AsObject())
+            {
+                <li>@error.Key: @error.Value.ToString()</li>
+            }
+        </ul>
+    </div>
+}

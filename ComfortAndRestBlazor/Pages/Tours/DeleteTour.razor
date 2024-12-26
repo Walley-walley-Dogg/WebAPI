@@ -1,0 +1,22 @@
+﻿@page "/Tours/Delete/{Id:int}"
+
+@using System.Text.Json.Nodes
+@using ComfortAndRestBlazor.Models
+
+<h1 class="mb-3">Delete Tour</h1>
+<p>Are you sure, delete Tour with Id @Id?</p>
+<button class="btn btn-danger" @onclick="DeletTour">Delete</button>
+<a class="btn btn-secondary" href="/Tours">Cancel</a>
+@inject HttpClient Http
+@inject NavigationManager navManager
+
+@code {
+    [Parameter]
+    public int Id { set; get; }
+
+    protected async Task DeletTour()
+    {
+        var responce = await Http.DeleteAsync("https://localhost:4000/api/Tours/" + Id);
+        navManager.NavigateTo("/Tours");
+    }
+}

@@ -1,0 +1,54 @@
+﻿@page "/Clients"
+@inject HttpClient Http
+
+<h1 class="text-center mb-3">List of Clients</h1>
+
+<a class="btn btn-primary mb-3 "href="/Clients/Create"> New Client</a>
+
+@if (clients == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class ="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>FirstName</th>
+                <th>LastName</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Adress</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var client in clients)
+        {
+                <tr>       
+                    <td>@client.Id</td>
+                    <th>@client.FirstName</th>
+                    <th>@client.LastName</th>
+                    <th>@client.Email</th>
+                    <th>@client.Phone</th>
+                    <th>@client.Address</th>                
+                    <td style="white-space:nowrap">
+                        <a class="btn btn-primary btn-sm" href="/Clients/Edit/@client.Id">Edit</a>
+                        <a class="btn btn-danger btn-sm" href="/Clients/Delete/@client.Id">Delete</a>
+                    </td>
+                </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Models.Models.Client>? clients;
+
+    protected override async Task OnInitializedAsync()
+    {
+        clients = await Http.GetFromJsonAsync<List<Models.Models.Client>>("https://localhost:4000/api/Clients");
+    }
+
+}

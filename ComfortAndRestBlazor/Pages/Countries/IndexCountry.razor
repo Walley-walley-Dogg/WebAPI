@@ -1,0 +1,51 @@
+﻿@page  "/Countries"
+@inject HttpClient Http
+
+<h1 class="text-center mb-3">List of Countries</h1>
+
+<a class="btn btn-primary mb-3 "href="/Countries/Create"> New Country</a>
+
+@if (countries == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class ="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                
+                <th>Name</th>
+                <th>Description</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var country in countries)
+            {
+                <tr>
+                    <td>@country.Id</td>
+                    <td>@country.Name</td>
+                    <td>@country.Description</td>
+                    <td style="white-space:nowrap">
+                               
+                        <a class="btn btn-primary btn-sm" href="/Countries/Edit/@country.Id">Edit</a>
+                        <a class="btn btn-danger btn-sm" href="/Countries/Delete/@country.Id">Delete</a>
+
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Models.Models.Country>? countries;
+
+    protected override async Task OnInitializedAsync()
+    {
+        countries = await Http.GetFromJsonAsync<List<Models.Models.Country>>("https://localhost:4000/api/Countries");
+    }
+
+}

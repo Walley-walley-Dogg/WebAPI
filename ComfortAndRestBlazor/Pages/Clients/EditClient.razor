@@ -1,0 +1,119 @@
+﻿@page "/Clients/Edit/{Id:int}"
+
+@using System.Text.Json.Nodes
+@using ComfortAndRestBlazor.Models
+
+<div class="row">
+    <div class="col-lg-8">
+        <h1 class="mb-5">Edit Client</h1>
+
+
+        @if (client == null)
+        {
+                <p><em>Loading...</em></p>
+        }
+        else
+        {
+            <div class="row mb-3">
+                <label class="col-md-4 col-form-label">Country Id</label>
+                <div class="col-md-8">
+                    <input class="form-control-plaintext" value="@Id" readonly>
+                </div>
+            </div>
+                <div class="row mb-3">
+            <label class="col-md-4 col-form-label">FirstName</label>
+            <div class="col-md-8">
+                <input class="form-control" @bind="ClientData.FirstName">
+                <span class="text-danger">@Errors["FirstName"]?[0]</span>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label class="col-md-4 col-form-label">LastName</label>
+            <div class="col-md-8">     
+                <input class="form-control" @bind="ClientData.LastName">
+                <span class="text-danger">@Errors["LastName"]?[0]</span> 
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label class="col-md-4 col-form-label">Email</label>
+            <div class="col-md-8">     
+                <input class="form-control" @bind="ClientData.Email">
+                <span class="text-danger">@Errors["Email"]?[0]</span> 
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label class="col-md-4 col-form-label">Phone</label>
+            <div class="col-md-8">     
+                <input class="form-control" @bind="ClientData.Phone">
+                <span class="text-danger">@Errors["Phone"]?[0]</span> 
+            </div>
+        </div>
+            <div class="row mb-3">
+            <label class="col-md-4 col-form-label">Address</label>
+            <div class="col-md-8">     
+                <input class="form-control" @bind="ClientData.Address">
+                <span class="text-danger">@Errors["Address"]?[0]</span> 
+            </div>
+        </div>
+            <div class="row">
+                <div class="offset-mb-4 col-md-4 d-grib">
+                    <button class="btn btn-primary" @onclick="SaveClient">Sumbit</button>
+                </div>
+                <div class="col-md-4 d-grid">
+                    <a class="btn btn-outline-primary" href="/Clients">Cancel</a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@inject HttpClient Http
+@inject NavigationManager navManager
+
+
+@code {
+    [Parameter]
+    public int Id { set; get; }
+    public Models.Client? client = null;
+    public ClientDto ClientData { set; get; } = new();
+    public JsonNode Errors { set; get; } = new JsonObject();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        try
+        {
+            client = await Http.GetFromJsonAsync<Models.Client>("https://localhost:4000/api/Clients/" + Id);
+            ClientData.FirstName = client?.FirstName ?? "";
+            ClientData.LastName = client?.LastName ?? "";
+            ClientData.Email = client?.Email ?? "";
+            ClientData.Phone = client?.Phone ?? "";
+            ClientData.Address = client?.Address ?? "";
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Exception : " + ex.Message);
+        }
+    }
+    protected async Task SaveClient()
+    {
+        var responce = await Http.PutAsJsonAsync("https://localhost:4000/api/Clients/" + Id, ClientData);
+
+        if (responce.IsSuccessStatusCode)
+        {
+            navManager.NavigateTo("/Clients");
+        }
+        else
+        {
+            var strResponse = await responce.Content.ReadAsStringAsync();
+            try
+            {
+                var jsonResponce = JsonNode.Parse(strResponse);
+                Errors = jsonResponce?["errors"] ?? new JsonObject();
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }
+    }
+}
